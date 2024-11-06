@@ -441,7 +441,7 @@
         <div class="user-items ps-0 ps-md-5">
           <ul class="d-flex justify-content-end list-unstyled align-item-center m-0">
             <li class="pe-3">
-              <a href="login" data-bs-toggle="modal" data-bs-target="#modallogin" class="border-0">
+              <<a href="login" data-bs-toggle="modal" data-bs-target="#modallogin" class="border-0" aria-label="Login">
                 <svg class="user" width="24" height="24">
                   <use xlink:href="#user"></use>
                 </svg>
@@ -782,15 +782,6 @@
       return localStorage.getItem("isLoggedIn") === "true";
     }
 
-    // Handle login submission
-    function handleLogin(event) {
-      event.preventDefault(); // Prevent page reload
-      localStorage.setItem("isLoggedIn", "true");
-      const loginModal = bootstrap.Modal.getInstance(document.getElementById('modallogin'));
-      loginModal.hide();
-      alert("You are now logged in.");
-    }
-
     // Function to add item to cart if logged in
     function addToCart(productName, price) {
       if (isLoggedIn()) {
@@ -806,13 +797,6 @@
         loginModal.show();
       }
     }
-
-    // Logout function
-    function logout() {
-      localStorage.removeItem("isLoggedIn");
-      alert("You have logged out.");
-    }
-
     </script>
 </body>
 
