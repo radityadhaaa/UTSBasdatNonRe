@@ -364,12 +364,64 @@
   
   <!-- JavaScript to manage quantities and calculate total tes -->
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      // Elements for the cart and subtotal
+    // Sorting and Filtering Functionality for Products
+    document.addEventListener("DOMContentLoaded", function() {
+      const sortPriceBtn = document.getElementById('sortPriceBtn');
+      const minPriceInput = document.getElementById('minPrice');
+      const maxPriceInput = document.getElementById('maxPrice');
+      const productContainer = document.querySelector('.product-content .row');
+  
+      let ascending = false; // Initially set to false so it sorts by descending first
+  
+      // Function to handle sorting of products
+      function sortProducts() {
+        const products = Array.from(productContainer.getElementsByClassName('product-card'));
+  
+        // Sort products based on price
+        products.sort((a, b) => {
+          const priceA = parseFloat(a.querySelector('.card-price').textContent.replace('$', ''));
+          const priceB = parseFloat(b.querySelector('.card-price').textContent.replace('$', ''));
+          return ascending ? priceA - priceB : priceB - priceA;
+        });
+  
+        // Append sorted products back to the container
+        products.forEach(product => productContainer.appendChild(product));
+  
+        // Toggle sorting order
+        ascending = !ascending;
+  
+        // Update button text to indicate the sorting order
+        sortPriceBtn.textContent = ascending ? 'Sort by Price (↓)' : 'Sort by Price (↑)';
+      }
+  
+      // Function to handle filtering of products by price range
+      function filterProductsByPrice() {
+        const minPrice = parseFloat(minPriceInput.value) || 0;
+        const maxPrice = parseFloat(maxPriceInput.value) || Infinity;
+        const products = Array.from(productContainer.getElementsByClassName('product-card'));
+  
+        products.forEach(product => {
+          const price = parseFloat(product.querySelector('.card-price').textContent.replace('$', ''));
+          if (price >= minPrice && price <= maxPrice) {
+            product.style.display = ''; // Show product
+          } else {
+            product.style.display = 'none'; // Hide product
+          }
+        });
+      }
+  
+      // Event listener for sorting button
+      sortPriceBtn.addEventListener('click', sortProducts);
+  
+      // Event listeners for price range inputs
+      minPriceInput.addEventListener('input', filterProductsByPrice);
+      maxPriceInput.addEventListener('input', filterProductsByPrice);
+  
+      // Cart Management Logic
       const cartContainer = document.querySelector(".cart-list");
       const cartSubtotalElement = document.getElementById("cart-subtotal");
       let cartItems = [];
-    
+  
       // Function to add item to the cart
       function addItemToCart(id, title, price, image, quantity = 1) {
         let existingItem = cartItems.find(item => item.id === id);
@@ -388,7 +440,7 @@
         updateCartDisplay();
         updateCartSubtotal();
       }
-    
+  
       // Render the entire cart
       function updateCartDisplay() {
         cartContainer.innerHTML = '';
@@ -432,26 +484,26 @@
           `;
           cartContainer.insertAdjacentHTML('beforeend', cartItemHtml);
         });
-    
+  
         attachCartEvents();
       }
-    
+  
       function attachCartEvents() {
         const quantityInputs = cartContainer.querySelectorAll(".input-number");
         const removeButtons = cartContainer.querySelectorAll(".remove");
-    
+  
         cartContainer.querySelectorAll(".quantity-left-minus").forEach(minusButton => {
           minusButton.addEventListener("click", function () {
             updateQuantity(this, -1);
           });
         });
-    
+  
         cartContainer.querySelectorAll(".quantity-right-plus").forEach(plusButton => {
           plusButton.addEventListener("click", function () {
             updateQuantity(this, 1);
           });
         });
-    
+  
         removeButtons.forEach(button => {
           button.addEventListener("click", function (event) {
             event.preventDefault();
@@ -460,12 +512,12 @@
           });
         });
       }
-    
+  
       function updateQuantity(button, change) {
         const quantityInput = button.closest(".product-qty").querySelector(".input-number");
         const id = quantityInput.dataset.id;
         let cartItem = cartItems.find(item => item.id === id);
-    
+  
         if (cartItem) {
           cartItem.quantity += change;
           if (cartItem.quantity <= 0) {
@@ -477,18 +529,18 @@
         updateCartDisplay();
         updateCartSubtotal();
       }
-    
+  
       function removeItemFromCart(id) {
         cartItems = cartItems.filter(item => item.id !== id);
         updateCartDisplay();
         updateCartSubtotal();
       }
-    
+  
       function updateCartSubtotal() {
         const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
         cartSubtotalElement.textContent = subtotal.toFixed(2);
       }
-    
+  
       const addToCartButtons = document.querySelectorAll(".btn-light[data-bs-target='#modallong']");
       addToCartButtons.forEach(button => {
         button.addEventListener("click", function () {
@@ -497,13 +549,13 @@
           const productTitle = productCard.querySelector(".card-title").innerText;
           const productPrice = parseFloat(productCard.querySelector(".card-price").innerText.replace('$', ''));
           const productImage = productCard.querySelector(".product-image").src;
-    
+  
           addItemToCart(productId, productTitle, productPrice, productImage);
           updateCartDisplay();
           updateCartSubtotal();
         });
       });
-    
+  
       const addToCartModalButton = document.querySelector(".btn.btn-medium.btn-black.hvr-sweep-to-right");
       if (addToCartModalButton) {
         addToCartModalButton.addEventListener("click", function (event) {
@@ -514,31 +566,31 @@
           const productPrice = parseFloat(productModal.querySelector(".product-price").innerText.replace('$', ''));
           const productImage = productModal.querySelector(".image-holder img").src;
           const productQuantity = parseInt(document.querySelector("#quantity_001").value) || 1;
-    
+  
           addItemToCart(productId, productTitle, productPrice, productImage, productQuantity);
           updateCartDisplay();
           updateCartSubtotal();
-    
+  
           const quickViewModal = bootstrap.Modal.getInstance(productModal);
           if (quickViewModal) {
             quickViewModal.hide();
           }
-    
+  
           const cartModal = new bootstrap.Modal(document.querySelector("#modallong"));
           cartModal.show();
         });
       }
-    
+  
       const qtyInput = document.querySelector("#quantity_001");
       const increaseQtyButton = document.querySelector(".qty-number-plus .plus");
       const decreaseQtyButton = document.querySelector(".qty-number-minus .minus");
-    
+  
       if (increaseQtyButton) {
         increaseQtyButton.addEventListener("click", function () {
           qtyInput.value = parseInt(qtyInput.value) + 1;
         });
       }
-    
+  
       if (decreaseQtyButton) {
         decreaseQtyButton.addEventListener("click", function () {
           if (parseInt(qtyInput.value) > 1) {
@@ -546,23 +598,24 @@
           }
         });
       }
-    
+  
       function removeBootstrapBackdrop() {
         const backdrops = document.querySelectorAll('.modal-backdrop');
         backdrops.forEach(backdrop => backdrop.remove());
         document.body.classList.remove('modal-open');
         document.body.style.paddingRight = '';
       }
-    
+  
       document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener('hidden.bs.modal', removeBootstrapBackdrop);
       });
-    
+  
       cartContainer.innerHTML = '';
       updateCartSubtotal();
     });
-    </script>
-    
+  </script>
+  
+      
 
   <!-- Login Modal -->
 <div class="modal fade" id="modallogin" tabindex="-1" aria-modal="true" role="dialog">
@@ -830,7 +883,16 @@
     <div class="container-md">
       <div class="display-header d-flex align-items-center justify-content-between">
         <h2 class="section-title text-uppercase">Products</h2>
+        <div>
+          <label for="minPrice" class="me-1">Min:</label>
+          <input type="number" id="minPrice" class="me-2" placeholder="$0" min="0">
+          <label for="maxPrice" class="me-1">Max:</label>
+          <input type="number" id="maxPrice" class="me-2" placeholder="$9999" min="0">
+          <button id="sortPriceBtn" class="btn btn-outline-secondary">Sort by Price</button>
+        </div>
       </div>
+      
+      
       <div class="product-content padding-small">
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5">
           <div class="col mb-4">
@@ -857,7 +919,7 @@
                 <h3 class="card-title fs-6 fw-normal m-0">
                   <a href="buyer.html">Running shoes for men</a>
                 </h3>
-                <span class="card-price fw-bold">$99</span>
+                <span class="card-price fw-bold">$80</span>
               </div>
             </div>
           </div>
@@ -885,7 +947,7 @@
                 <h3 class="card-title fs-6 fw-normal m-0">
                   <a href="buyer.html">Running shoes for men</a>
                 </h3>
-                <span class="card-price fw-bold">$99</span>
+                <span class="card-price fw-bold">$76</span>
               </div>
             </div>
           </div>
@@ -913,7 +975,7 @@
                 <h3 class="card-title fs-6 fw-normal m-0">
                   <a href="buyer.html">Running shoes for men</a>
                 </h3>
-                <span class="card-price fw-bold">$99</span>
+                <span class="card-price fw-bold">$82</span>
               </div>
             </div>
           </div>
@@ -941,7 +1003,7 @@
                 <h3 class="card-title fs-6 fw-normal m-0">
                   <a href="buyer.html">Running shoes for men</a>
                 </h3>
-                <span class="card-price fw-bold">$99</span>
+                <span class="card-price fw-bold">$24</span>
               </div>
             </div>
           </div>
